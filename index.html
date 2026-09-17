@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>豐東國中 - 總量管制新生入學答客問</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    html { font-size: 120% !important; }
+    .highlight { background-color: #fef08a; font-weight: bold; border-radius: 2px; padding: 0 2px; }
+    .chat-bubble-bot { background-color: #f1f5f9; color: #1e293b; border-bottom-left-radius: 4px; }
+    .chat-bubble-user { background-color: #4338ca; color: white; border-bottom-right-radius: 4px; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans">
+
+  <!-- 頂部橫幅 -->
+  <header class="bg-gradient-to-r from-blue-800 to-indigo-900 text-white shadow-md">
+    <div class="max-w-5xl mx-auto px-4 py-5">
+      <div class="flex items-center space-x-3">
+        <i class="fa-solid fa-graduation-cap text-3xl text-yellow-300"></i>
+        <div>
+          <h1 class="text-xl md:text-2xl font-bold tracking-wide">臺中市立豐東國民中學</h1>
+          <p class="text-xs md:text-sm text-blue-200">
+            <span id="headerAcademicYear">116</span> 學年度新生入學常見問題 • 家長線上即時答客問
+          </p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 頁面主體 -->
+  <main class="flex-grow max-w-5xl w-full mx-auto px-4 py-6 space-y-6">
+
+    <!-- 審查必看防呆提醒 -->
+    <div class="bg-amber-50 border-l-4 border-amber-500 rounded-r-xl p-4 shadow-sm flex items-start space-x-3">
+      <i class="fa-solid fa-triangle-exclamation text-amber-500 text-xl mt-0.5"></i>
+      <div class="text-sm">
+        <strong class="text-amber-900 block font-bold text-base mb-1">資格初審必讀：三大必備檢核重點</strong>
+        <ul class="list-disc list-inside text-amber-800 space-y-0.5 text-xs md:text-sm">
+          <li><strong>戶口名簿必須包含詳細記事欄</strong>（無記事欄無法核對遷入日）。</li>
+          <li><strong>戶籍謄本限 <span class="dyn-transcript-date text-rose-700 font-bold">3個月內</span> 開立之正本</strong>。</li>
+          <li>證明文件均需攜帶<strong>「正本（驗畢歸還）」</strong>與<strong>「影本（留存備查）」</strong>。</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 資格判定 Chatbot 精靈 -->
+    <section class="bg-white rounded-2xl border-2 border-indigo-200 shadow-md overflow-hidden flex flex-col">
+      <div class="bg-indigo-900 text-white px-5 py-3.5 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <div class="relative">
+            <div class="w-10 h-10 rounded-full bg-indigo-700 border-2 border-indigo-300 flex items-center justify-center text-yellow-300 text-lg">
+              <i class="fa-solid fa-robot"></i>
+            </div>
+            <span class="absolute bottom-0 right-0 w-3 h-3 bg-emerald-400 border-2 border-indigo-900 rounded-full"></span>
+          </div>
+          <div>
+            <h2 class="font-bold text-base tracking-wide">豐東入學資格判定精靈</h2>
+            <p class="text-xs text-indigo-200">線上互動問答 • 智能判定順位與攜帶清單</p>
+          </div>
+        </div>
+        <button onclick="restartChat()" class="text-xs bg-indigo-800/80 hover:bg-indigo-700 text-indigo-100 px-3 py-1.5 rounded-lg transition border border-indigo-600 flex items-center gap-1">
+          <i class="fa-solid fa-rotate-left"></i>
+          <span>重啟對話</span>
+        </button>
+      </div>
+      <div id="chatMessages" class="p-4 md:p-5 space-y-4 max-h-[520px] overflow-y-auto bg-slate-50/50"></div>
+      <div id="chatControls" class="p-3 md:p-4 bg-white border-t border-slate-200">
+        <div id="chatOptions" class="flex flex-wrap gap-2"></div>
+      </div>
+    </section>
+
+    <!-- 學區速查工具 -->
+    <section class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm space-y-3">
+      <div class="flex items-center space-x-2 text-blue-900 font-bold text-base">
+        <i class="fa-solid fa-map-location-dot text-blue-600"></i>
+        <span>學區里鄰快速判定工具</span>
+      </div>
+      <p class="text-xs text-slate-500">家長可直接點選戶籍所在里別，快速確認是否符合豐東國中學區：</p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <select id="districtSelect" onchange="checkDistrict()" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+            <option value="">-- 請選擇居住里別 --</option>
+            <option value="南陽里">南陽里</option><option value="陽明里">陽明里</option>
+            <option value="北陽里">北陽里</option><option value="中陽里">中陽里</option>
+            <option value="東陽里">東陽里</option><option value="中山里">中山里</option>
+            <option value="豐田里">豐田里</option><option value="翁明里">翁明里</option>
+            <option value="翁子里">翁子里</option><option value="南村里">南村里</option>
+            <option value="OTHER">其他里別（非本校學區）</option>
+          </select>
+        </div>
+        <div id="districtResult" class="p-2.5 rounded-lg text-sm bg-slate-100 text-slate-600 flex items-center">
+          請於左側選擇里別查詢劃分結果
+        </div>
+      </div>
+    </section>
+
+    <!-- 搜尋列與分類標籤區 -->
+    <section class="space-y-4">
+      <div class="relative">
+        <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-slate-400"></i>
+        <input type="text" id="searchInput" placeholder="輸入關鍵字搜尋題庫（例：水電費、租約、記事欄、轉介...）" class="w-full pl-11 pr-10 py-3 rounded-xl border border-slate-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 bg-white text-base transition">
+        <button id="clearSearchBtn" class="hidden absolute right-3.5 top-3.5 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <div id="categoryTabs" class="flex flex-wrap gap-2 pt-1">
+        <button class="tab-btn active px-4 py-1.5 rounded-full text-sm font-medium transition bg-blue-700 text-white shadow-sm" data-category="ALL">全部問題 (<span id="totalCount">0</span>)</button>
+      </div>
+    </section>
+
+    <!-- 載入中狀態 -->
+    <div id="loadingState" class="text-center py-12 space-y-3">
+      <i class="fa-solid fa-circle-notch fa-spin text-4xl text-blue-600"></i>
+      <p class="text-slate-500 font-medium">連線至試算表載入最新題庫中...</p>
+    </div>
+
+    <!-- 常見問題列表 -->
+    <section id="faqContainer" class="space-y-3 hidden"></section>
+
+    <!-- 查無結果提示 -->
+    <div id="emptyState" class="hidden text-center py-10 bg-white rounded-2xl border border-dashed border-slate-300 p-8 space-y-4">
+      <i class="fa-solid fa-clipboard-question text-5xl text-slate-300"></i>
+      <div>
+        <p class="text-slate-700 font-bold text-lg">查無包含「<span id="missingKeyword" class="text-blue-600"></span>」的相關答客問</p>
+        <p class="text-sm text-slate-500 mt-1">您可以利用下方表單，直接將問題發送給教務處註冊組長。</p>
+      </div>
+      <a href="#questionFormSection" class="inline-flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-5 py-2.5 rounded-lg shadow transition">
+        <i class="fa-solid fa-arrow-down"></i><span>前往下方填寫提問</span>
+      </a>
+    </div>
+
+    <!-- 線上提問表單 -->
+    <section id="questionFormSection" class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-5">
+      <div class="border-b border-slate-200 pb-3">
+        <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+          <i class="fa-regular fa-paper-plane text-indigo-600"></i>沒找到解答？線上提問寄發註冊組
+        </h3>
+        <p class="text-xs text-slate-500 mt-1">填妥下列資料送出後，系統將自動寄發 Email 通知註冊組長為您答覆處理。</p>
+      </div>
+
+      <form id="onlineInquiryForm" onsubmit="handleFormSubmit(event)" class="space-y-4 text-sm">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div><label class="block font-medium text-slate-700 mb-1">家長姓名 <span class="text-rose-500">*</span></label><input type="text" id="parentName" required placeholder="例：林先生 / 陳小姐" class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"></div>
+          <div><label class="block font-medium text-slate-700 mb-1">聯絡電話 <span class="text-rose-500">*</span></label><input type="tel" id="parentPhone" required placeholder="例：0912-345678" class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"></div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div><label class="block font-medium text-slate-700 mb-1">電子信箱 (選填)</label><input type="email" id="parentEmail" placeholder="方便接收信件回覆" class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"></div>
+          <div>
+            <label class="block font-medium text-slate-700 mb-1">諮詢類別 <span class="text-rose-500">*</span></label>
+            <select id="questionCategory" required class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none bg-white">
+              <option value="學區劃分疑義">學區劃分疑義</option><option value="順位與居住證明資格">順位與居住證明資格</option>
+              <option value="戶籍謄本/記事欄問題">戶籍謄本/記事欄問題</option><option value="超額轉介與審查時程">超額轉介與審查時程</option>
+              <option value="其他特殊狀況">其他特殊狀況</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="block font-medium text-slate-700 mb-1">詳細提問內容 <span class="text-rose-500">*</span></label>
+          <textarea id="questionContent" rows="3" required placeholder="請詳細說明您的問題..." class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"></textarea>
+        </div>
+        <div class="flex items-center justify-between pt-2">
+          <span id="submitStatusMsg" class="text-sm font-medium"></span>
+          <button type="submit" id="submitBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-6 py-2.5 rounded-xl shadow transition flex items-center space-x-2">
+            <i class="fa-solid fa-paper-plane text-xs"></i><span id="btnText">確認送出提問</span>
+          </button>
+        </div>
+      </form>
+      <div class="border-t border-slate-200 pt-4 flex flex-col md:flex-row md:items-center md:justify-between text-slate-700 gap-2">
+        <span class="font-bold text-slate-800 flex items-center"><i class="fa-solid fa-phone mr-2 text-indigo-600"></i>教務處註冊組專線：(04) 2522-1743 分機 5212或5214</span>
+        <span class="text-slate-500 font-medium text-xs md:text-sm"><i class="fa-regular fa-clock mr-1"></i>服務時間：週一至週五 08:00 - 16:30</span>
+      </div>
+    </section>
+
+  </main>
+  <footer class="bg-slate-100 border-t border-slate-200 py-6 text-center text-xs text-slate-500">
+    <p>臺中市立豐東國民中學 版權所有 • 本答客問系統僅供入學資格預備參考，正式時程與規範以教育局公文為準</p>
+  </footer>
+
+  <script>
+    // ==========================================================
+    // ⚠️ 請將引號內的文字替換為您剛剛從 GAS 複製的「網頁應用程式網址」
+    // ==========================================================
+    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxNdy7BanIXuhqYPGDpuuJ1rBFEm76Ake5oZs-oYjZdVPsvqapderHHPkaOrXI6wRIM/exec";
+
+    let allFaqs = [];
+    let systemConfig = {
+      academicYear: "116",
+      auditPeriod: "每年四月初",
+      leaseValidDate: "116年4月",
+      transcriptAfterDate: "116年1月"
+    };
+    let currentCategory = 'ALL';
+    let currentSearchTerm = '';
+
+    window.addEventListener('DOMContentLoaded', () => {
+      loadSystemData();
+      bindInputEvents();
+      initChatbot();
+    });
+
+    // 改用 fetch 呼叫 GAS API 取得資料
+    function loadSystemData() {
+      fetch(GAS_API_URL)
+        .then(response => {
+          if (!response.ok) throw new Error('Network response was not ok');
+          return response.json();
+        })
+        .then(data => onDataLoaded(data))
+        .catch(err => onDataError(err));
+    }
+
+    function onDataLoaded(response) {
+      document.getElementById('loadingState').classList.add('hidden');
+      if (!response.success) {
+        alert('載入失敗：' + response.error);
+        return;
+      }
+
+      allFaqs = response.faqList;
+      if (response.config) {
+        systemConfig = response.config;
+      }
+
+      document.getElementById('headerAcademicYear').innerText = systemConfig.academicYear;
+      document.querySelectorAll('.dyn-transcript-date').forEach(el => {
+        el.innerText = systemConfig.transcriptAfterDate;
+      });
+
+      document.getElementById('totalCount').innerText = allFaqs.length;
+      buildCategoryTabs();
+      renderFaqList();
+      document.getElementById('faqContainer').classList.remove('hidden');
+    }
+
+    function onDataError(err) {
+      document.getElementById('loadingState').innerHTML = `
+        <div class="text-rose-600 p-4">
+          <i class="fa-solid fa-circle-exclamation text-3xl mb-2"></i>
+          <p>無法連線至試算表資料庫，請確認 API 網址是否正確或網路狀態。</p>
+        </div>
+      `;
+    }
+
+    // ==========================================
+    // 對話式 Chatbot 精靈核心邏輯 (完全保留)
+    // ==========================================
+    function initChatbot() {
+      const chatMessages = document.getElementById('chatMessages');
+      chatMessages.innerHTML = '';
+      appendBotMessage(`家長您好！我是豐東國中入學小幫手 🎓。<br>想確認孩子的入學順位與該準備哪些證件嗎？只要回答 1～2 個問題，我立刻為您判定！<br><br>請問新生目前在學區內是<strong>屬於哪種居住與證明文件狀況</strong>？`);
+      renderChatOptions([
+        { text: "🏠 自有住宅（權狀或房屋稅單）", action: () => selectLiving('OWN', '自有住宅（權狀或房屋稅單）') },
+        { text: "📑 租賃住宅（已辦理法院公證）", action: () => selectLiving('NOTARY', '租賃住宅（已辦理法院公證）') },
+        { text: "💡 租屋或借住（無公證，有水電帳單）", action: () => selectLiving('BILLS', '租屋或借住（無公證，有水電帳單）') },
+        { text: "👫 親生兄姊目前就讀豐東國中", action: () => selectLiving('SIBLING', '親生兄姊目前就讀豐東國中') },
+        { text: "📍 僅設籍學區（無上述居住證明）", action: () => selectLiving('NONE', '僅設籍學區（無上述居住證明）') }
+      ]);
+    }
+
+    function restartChat() { initChatbot(); }
+
+    function appendBotMessage(html) {
+      const chatMessages = document.getElementById('chatMessages');
+      const msgDiv = document.createElement('div');
+      msgDiv.className = "flex items-start space-x-2.5";
+      msgDiv.innerHTML = `<div class="w-8 h-8 rounded-full bg-indigo-600 text-yellow-300 flex items-center justify-center text-xs shrink-0 mt-0.5"><i class="fa-solid fa-robot"></i></div><div class="chat-bubble-bot p-3.5 rounded-2xl text-xs md:text-sm shadow-2xs max-w-[88%] leading-relaxed">${html}</div>`;
+      chatMessages.appendChild(msgDiv);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function appendUserMessage(text) {
+      const chatMessages = document.getElementById('chatMessages');
+      const msgDiv = document.createElement('div');
+      msgDiv.className = "flex items-end justify-end space-x-2";
+      msgDiv.innerHTML = `<div class="chat-bubble-user p-3 rounded-2xl text-xs md:text-sm shadow-2xs max-w-[80%] font-medium leading-relaxed">${text}</div>`;
+      chatMessages.appendChild(msgDiv);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function renderChatOptions(options) {
+      const controls = document.getElementById('chatOptions');
+      controls.innerHTML = '';
+      options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = "bg-white hover:bg-indigo-50 text-indigo-900 border border-indigo-200 hover:border-indigo-400 font-bold py-2 px-3.5 rounded-xl text-xs md:text-sm shadow-2xs transition active:scale-95";
+        btn.innerHTML = opt.text;
+        btn.onclick = () => { controls.innerHTML = ''; opt.action(); };
+        controls.appendChild(btn);
+      });
+    }
+
+    function selectLiving(livingType, label) {
+      appendUserMessage(label);
+      if (livingType === 'OWN' || livingType === 'BILLS') {
+        setTimeout(() => {
+          appendBotMessage(`好的！請幫我確認最後一個關鍵細節 🔍：<br><strong>權狀所有人（或帳單繳款人），是否為新生的「直系尊親屬」</strong>（父母、祖父母、外祖父母、曾祖父母）或法定監護人？`);
+          renderChatOptions([
+            { text: "✅ 是直系親屬（父母/祖父母等）", action: () => confirmRelation(true, livingType, "是新生的直系親屬") },
+            { text: "❌ 不是（叔伯、姑姑、舅舅等旁系）", action: () => confirmRelation(false, livingType, "不是，是叔伯舅姑等旁系親屬") }
+          ]);
+        }, 350);
+      } else if (livingType === 'NOTARY') {
+        setTimeout(() => {
+          appendBotMessage(`租約已完成法院公證，符合第一順位資格！以下為您判定結果與應備清單：`);
+          renderResultCard({
+            title: "第一順位 b-1類（法院公證租賃住宅）", priorityType: "FIRST", tag: "第一順位",
+            desc: "租約經法院公證，等同第一順位證明。若人數超額，將以學生最後遷入學區戶籍日先後比序錄取至額滿為止。",
+            items: [{ text: "審查通知單正本", warn: "由國小端轉發，未收到可現場補單" }, { text: "詳細記事戶口名簿 或 " + systemConfig.transcriptAfterDate + " 以後開立之戶籍謄本（正本+影本）", warn: "不可省略記事欄" }, { text: "經法院公證之房屋租賃契約（正本+影本）", warn: "租約期限需涵蓋至 " + systemConfig.leaseValidDate }]
+          });
+        }, 350);
+      } else if (livingType === 'SIBLING') {
+        setTimeout(() => {
+          appendBotMessage(`親生兄姊目前正就讀豐東國中，符合第一順位資格！以下為您判定結果與應備清單：`);
+          renderResultCard({
+            title: "第一順位 c類（親生兄姊就讀豐東國中）", priorityType: "FIRST", tag: "第一順位",
+            desc: "兄姊在學中同屬第一順位。若超額時同樣以新生戶籍遷入日之先後順序比序錄取。",
+            items: [{ text: "審查通知單正本", warn: "由國小端轉發" }, { text: "詳細記事戶口名簿（正本+影本）", warn: "需能證明兄姊與新生同戶籍" }, { text: "兄姊之學生證正本 或 在學證明", warn: "兄姊目前須為豐東國中在學生" }]
+          });
+        }, 350);
+      } else {
+        setTimeout(() => {
+          appendBotMessage(`了解，僅設籍但無居住證明者屬於「第二順位」。以下為您判定結果與應備清單：`);
+          renderResultCard({
+            title: "第二順位（設籍學區無居住證明）", priorityType: "SECOND", tag: "第二順位",
+            desc: "第一順位錄取後若有名額，才依第二順位設籍時間比序；若額滿將協調免遷戶籍轉介至鄰近未額滿學校就讀。",
+            items: [{ text: "審查通知單正本", warn: "由國小端轉發" }, { text: "詳細記事戶口名簿 或 3個月內戶籍謄本（正本+影本）", warn: "不可省略記事欄" }]
+          });
+        }, 350);
+      }
+    }
+
+    function confirmRelation(isDirect, livingType, label) {
+      appendUserMessage(label);
+      if (!isDirect) {
+        setTimeout(() => {
+          appendBotMessage(`⚠️ <strong>親屬防呆警示</strong>：<br>依臺中市法規，叔叔、伯伯、姑姑、舅舅、阿姨等「旁系親屬」之房產或帳單<strong>無法列為第一順位居住證明</strong>，因此歸入【第二順位】。`);
+          renderResultCard({
+            title: "第二順位（房屋所有人非直系親屬）", priorityType: "SECOND", tag: "第二順位",
+            desc: "因房屋或帳單所有人為旁系親屬，依法無法列為第一順位居住證明，依設籍先後參與第二順位比序錄取。",
+            items: [{ text: "審查通知單正本", warn: "由國小端轉發" }, { text: "詳細記事戶口名簿 或 3個月內戶籍謄本（正本+影本）", warn: "不可省略記事欄" }]
+          });
+        }, 350);
+      } else {
+        if (livingType === 'OWN') {
+          setTimeout(() => {
+            appendBotMessage(`太棒了！直系親屬持有學區房屋，判定為【第一順位 a類】！以下為您判定結果與應備清單：`);
+            renderResultCard({
+              title: "第一順位 a類（設籍並居住學區自有住宅）", priorityType: "FIRST", tag: "第一順位",
+              desc: "若第一順位報名人數超額，將以學生最後遷入學區戶籍日之先後順序比序錄取至額滿為止。",
+              items: [{ text: "審查通知單正本", warn: "由國小端轉發" }, { text: "詳細記事戶口名簿 或 " + systemConfig.transcriptAfterDate + " 以後開立之戶籍謄本（正本+影本）", warn: "不可省略記事欄" }, { text: "房屋建物所有權狀 或 當年度房屋稅單（正本+影本）", warn: "所有人需為新生之直系親屬" }]
+            });
+          }, 350);
+        } else {
+          setTimeout(() => {
+            appendBotMessage(`以直系親屬之日常帳單作為居住事實證明，同屬【第一順位 b-2類】！以下為您判定結果與應備清單：`);
+            renderResultCard({
+              title: "第一順位 b-2類（一般生活帳單證明）", priorityType: "FIRST", tag: "第一順位",
+              desc: "以生活水電瓦斯等帳單作為居住證明，同屬第一順位。超額時依戶籍遷入日比序錄取。",
+              items: [{ text: "審查通知單正本", warn: "由國小端轉發" }, { text: "詳細記事戶口名簿 或 " + systemConfig.transcriptAfterDate + " 以後開立之戶籍謄本（正本+影本）", warn: "不可省略記事欄" }, { text: "1年內水/電/瓦斯/信用卡帳單收據正本（附影本）", warn: "地址需與戶籍相同，用戶名稱需為學生直系尊親屬" }]
+            });
+          }, 350);
+        }
+      }
+    }
+
+    function renderResultCard(data) {
+      const chatMessages = document.getElementById('chatMessages');
+      const cardDiv = document.createElement('div');
+      cardDiv.className = "bg-white border-2 border-indigo-200 rounded-2xl p-4 shadow-md space-y-3 mt-2";
+      const isFirst = data.priorityType === 'FIRST';
+      const bannerBg = isFirst ? "bg-gradient-to-r from-red-600 via-rose-600 to-amber-500 text-white" : "bg-gradient-to-r from-amber-600 via-orange-600 to-amber-700 text-white";
+      const tagBg = isFirst ? "bg-white/25 text-yellow-200" : "bg-white/25 text-white";
+
+      let itemsHtml = '';
+      data.items.forEach(item => {
+        itemsHtml += `<div class="flex items-start space-x-2.5 p-2.5 bg-slate-50 rounded-xl border border-slate-200 text-xs md:text-sm"><i class="fa-solid fa-file-circle-check text-indigo-600 mt-1 shrink-0"></i><div class="flex-grow"><div class="font-bold text-slate-800">${item.text}</div><div class="text-[11px] text-amber-700 font-medium mt-0.5">⚠️ ${item.warn}</div></div></div>`;
+      });
+
+      cardDiv.innerHTML = `<div class="${bannerBg} p-4 rounded-xl shadow text-center"><span class="inline-block px-3 py-0.5 ${tagBg} text-xs font-black rounded-full mb-1 tracking-wider uppercase">🎯 審查判定結果 • ${data.tag}</span><div class="text-xl md:text-2xl font-black text-yellow-300 tracking-wide drop-shadow-sm mt-0.5">${data.title}</div></div><p class="text-xs text-slate-600 leading-relaxed bg-slate-50 p-2.5 rounded-lg border border-slate-200">${data.desc}</p><div class="space-y-1.5"><span class="text-xs font-bold text-slate-700">臨櫃審查應備文件清單：</span>${itemsHtml}</div><div class="bg-indigo-50 border border-indigo-200 rounded-xl p-2.5 text-xs text-indigo-900 flex items-center space-x-2"><i class="fa-solid fa-camera text-indigo-600 text-sm"></i><span><strong>截圖提醒：</strong>建議家長直接<strong>截圖此卡片存入手機相簿</strong>，審查出門前對照不遺漏！</span></div>`;
+      chatMessages.appendChild(cardDiv);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+      renderChatOptions([{ text: "🔄 重新測試其他情況", action: () => restartChat() }]);
+    }
+
+    // ==========================================
+    // UI 元件互動 (標籤、搜尋、表單)
+    // ==========================================
+    function buildCategoryTabs() {
+      const categories = [...new Set(allFaqs.map(item => item.category))];
+      const tabsContainer = document.getElementById('categoryTabs');
+      categories.forEach(cat => {
+        const count = allFaqs.filter(item => item.category === cat).length;
+        const btn = document.createElement('button');
+        btn.className = 'tab-btn px-4 py-1.5 rounded-full text-sm font-medium transition bg-white text-slate-600 hover:bg-slate-100 border border-slate-200';
+        btn.setAttribute('data-category', cat);
+        btn.innerHTML = `${cat} (<span class="text-xs text-slate-400">${count}</span>)`;
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach(b => { b.className = 'tab-btn px-4 py-1.5 rounded-full text-sm font-medium transition bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'; });
+          btn.className = 'tab-btn active px-4 py-1.5 rounded-full text-sm font-medium transition bg-blue-700 text-white shadow-sm';
+          currentCategory = cat; renderFaqList();
+        });
+        tabsContainer.appendChild(btn);
+      });
+    }
+
+    function bindInputEvents() {
+      const searchInput = document.getElementById('searchInput');
+      const clearBtn = document.getElementById('clearSearchBtn');
+      searchInput.addEventListener('input', (e) => {
+        currentSearchTerm = e.target.value.trim().toLowerCase();
+        if (currentSearchTerm) clearBtn.classList.remove('hidden'); else clearBtn.classList.add('hidden');
+        renderFaqList();
+      });
+      clearBtn.addEventListener('click', () => { searchInput.value = ''; currentSearchTerm = ''; clearBtn.classList.add('hidden'); renderFaqList(); });
+      document.querySelector('.tab-btn[data-category="ALL"]').addEventListener('click', function() {
+        document.querySelectorAll('.tab-btn').forEach(b => { b.className = 'tab-btn px-4 py-1.5 rounded-full text-sm font-medium transition bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'; });
+        this.className = 'tab-btn active px-4 py-1.5 rounded-full text-sm font-medium transition bg-blue-700 text-white shadow-sm';
+        currentCategory = 'ALL'; renderFaqList();
+      });
+    }
+
+    function renderFaqList() {
+      const container = document.getElementById('faqContainer');
+      const emptyState = document.getElementById('emptyState');
+      container.innerHTML = '';
+      const filtered = allFaqs.filter(item => {
+        const matchesCategory = (currentCategory === 'ALL' || item.category === currentCategory);
+        const matchesSearch = !currentSearchTerm || item.question.toLowerCase().includes(currentSearchTerm) || item.answer.toLowerCase().includes(currentSearchTerm) || item.keywords.toLowerCase().includes(currentSearchTerm);
+        return matchesCategory && matchesSearch;
+      });
+      if (filtered.length === 0) {
+        container.classList.add('hidden'); emptyState.classList.remove('hidden');
+        document.getElementById('missingKeyword').innerText = currentSearchTerm || currentCategory; return;
+      }
+      container.classList.remove('hidden'); emptyState.classList.add('hidden');
+      filtered.forEach(item => {
+        const qHtml = highlightKeywords(item.question, currentSearchTerm);
+        const aHtml = highlightKeywords(item.answer, currentSearchTerm);
+        const card = document.createElement('div');
+        card.className = 'bg-white rounded-xl border border-slate-200 shadow-sm transition hover:border-blue-300 overflow-hidden';
+        card.innerHTML = `<button class="w-full text-left px-5 py-4 flex items-center justify-between gap-3 focus:outline-none" onclick="toggleCard(${item.id})"><div class="flex items-start gap-3"><span class="inline-block mt-0.5 px-2.5 py-0.5 bg-blue-50 text-blue-700 text-xs font-semibold rounded border border-blue-200">${item.category}</span><span class="text-base font-bold text-slate-800">${qHtml}</span></div><i id="chevron-${item.id}" class="fa-solid fa-chevron-down text-slate-400 text-sm transition-transform duration-200"></i></button><div id="content-${item.id}" class="hidden px-5 pb-5 pt-2 text-slate-700 text-sm leading-relaxed border-t border-slate-100 bg-slate-50/50">${aHtml}</div>`;
+        container.appendChild(card);
+      });
+    }
+
+    function toggleCard(id) {
+      const content = document.getElementById(`content-${id}`);
+      const icon = document.getElementById(`chevron-${id}`);
+      if (content.classList.contains('hidden')) { content.classList.remove('hidden'); icon.classList.add('rotate-180', 'text-blue-600'); } else { content.classList.add('hidden'); icon.classList.remove('rotate-180', 'text-blue-600'); }
+    }
+
+    function highlightKeywords(text, kw) {
+      if (!kw) return text;
+      return text.replace(new RegExp(`(${kw})`, 'gi'), `<mark class="highlight">$1</mark>`);
+    }
+
+    function checkDistrict() {
+      const sel = document.getElementById('districtSelect').value;
+      const res = document.getElementById('districtResult');
+      if (!sel) { res.className = 'p-2.5 rounded-lg text-sm bg-slate-100 text-slate-600 flex items-center'; res.innerHTML = '請於左側選擇里別查詢劃分結果'; return; }
+      if (['南陽里', '陽明里', '北陽里', '中陽里', '東陽里'].includes(sel)) {
+        res.className = 'p-2.5 rounded-lg text-sm bg-emerald-50 text-emerald-800 border border-emerald-200 font-medium'; res.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600 mr-1.5"></i><strong>${sel}為全里學區</strong>，該里所有鄰別皆屬豐東國中學區。`;
+      } else if (sel === '中山里') {
+        res.className = 'p-2.5 rounded-lg text-sm bg-blue-50 text-blue-800 border border-blue-200'; res.innerHTML = `<i class="fa-solid fa-circle-info text-blue-600 mr-1.5"></i><strong>中山里僅【4 - 11 鄰】</strong>為本校學區。`;
+      } else if (sel === '豐田里') {
+        res.className = 'p-2.5 rounded-lg text-sm bg-blue-50 text-blue-800 border border-blue-200'; res.innerHTML = `<i class="fa-solid fa-circle-info text-blue-600 mr-1.5"></i><strong>豐田里僅【16、17 鄰】</strong>為本校學區。`;
+      } else if (sel === '翁明里') {
+        res.className = 'p-2.5 rounded-lg text-sm bg-blue-50 text-blue-800 border border-blue-200'; res.innerHTML = `<i class="fa-solid fa-circle-info text-blue-600 mr-1.5"></i><strong>翁明里僅【1 - 9 鄰】</strong>為本校學區。`;
+      } else if (sel === '翁子里') {
+        res.className = 'p-2.5 rounded-lg text-sm bg-blue-50 text-blue-800 border border-blue-200'; res.innerHTML = `<i class="fa-solid fa-circle-info text-blue-600 mr-1.5"></i><strong>翁子里僅【11 鄰圓環東路以西】</strong>為本校學區。`;
+      } else if (sel === '南村里') {
+        res.className = 'p-2.5 rounded-lg text-sm bg-blue-50 text-blue-800 border border-blue-200'; res.innerHTML = `<i class="fa-solid fa-circle-info text-blue-600 mr-1.5"></i><strong>南村里</strong>包含：6-11、13-15、18-19、21 鄰；5 鄰（圓環東路以西）；3、12、17、20 鄰（豐東路以西）。`;
+      } else {
+        res.className = 'p-2.5 rounded-lg text-sm bg-rose-50 text-rose-800 border border-rose-200'; res.innerHTML = `<i class="fa-solid fa-circle-xmark text-rose-500 mr-1.5"></i>該里非豐東國中學區，請向學區所屬國中洽詢。`;
+      }
+    }
+
+    // 改用 fetch 將表單資料送至 GAS POST API
+    function handleFormSubmit(e) {
+      e.preventDefault();
+      const submitBtn = document.getElementById('submitBtn');
+      const btnText = document.getElementById('btnText');
+      const statusMsg = document.getElementById('submitStatusMsg');
+
+      const formData = {
+        name: document.getElementById('parentName').value.trim(),
+        phone: document.getElementById('parentPhone').value.trim(),
+        email: document.getElementById('parentEmail').value.trim(),
+        category: document.getElementById('questionCategory').value,
+        question: document.getElementById('questionContent').value.trim()
+      };
+
+      submitBtn.disabled = true;
+      submitBtn.classList.add('opacity-60', 'cursor-not-allowed');
+      btnText.innerText = "傳送中...";
+      statusMsg.innerHTML = '<span class="text-blue-600"><i class="fa-solid fa-circle-notch fa-spin mr-1"></i>正在寄發通知信給註冊組長...</span>';
+
+      fetch(GAS_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ formData: formData })
+      })
+      .then(res => res.json())
+      .then(res => {
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('opacity-60', 'cursor-not-allowed');
+        btnText.innerText = "確認送出提問";
+        if (res.success) {
+          statusMsg.innerHTML = '<span class="text-emerald-600 font-bold"><i class="fa-solid fa-circle-check mr-1"></i>提問成功送出！已自動寄信給註冊組長。</span>';
+          document.getElementById('onlineInquiryForm').reset();
+          alert('感謝您的填寫！您的提問已寄送至教務處註冊組，行政人員將會盡速為您處理。');
+        } else {
+          statusMsg.innerHTML = `<span class="text-rose-600 font-bold"><i class="fa-solid fa-circle-xmark mr-1"></i>送出失敗：${res.error}</span>`;
+        }
+      })
+      .catch(err => {
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('opacity-60', 'cursor-not-allowed');
+        btnText.innerText = "確認送出提問";
+        statusMsg.innerHTML = `<span class="text-rose-600 font-bold"><i class="fa-solid fa-circle-xmark mr-1"></i>傳輸錯誤，請確認網路狀態。</span>`;
+      });
+    }
+  </script>
+</body>
+</html>
