@@ -200,14 +200,39 @@
     });
 
     // 改用 fetch 呼叫 GAS API 取得資料
-    function loadSystemData() {
-      fetch(GAS_API_URL)
-        .then(response => {
-          if (!response.ok) throw new Error('Network response was not ok');
-          return response.json();
-        })
-        .then(data => onDataLoaded(data))
-        .catch(err => onDataError(err));
+// 改用具備「自動重試」與「離線快取」的強化版 API 呼叫
+    async function loadSystemData(retries = 3) {
+      try {
+        // 1. 確保 fetch 明確跟隨 Google 的 302 轉址機制
+        const response = await fetch(GAS_API_URL, { 
+          method: 'GET',
+          redirect: 'follow' 
+        });
+
+        if (!response.ok) throw new Error('伺服器回應異常');
+        const data = await response.json();
+
+        // 2. 成功取得資料後，存一份到瀏覽器的 LocalStorage 當作備援快取
+        localStorage.setItem('fengdong_gas_cache', JSON.stringify(data));
+        onDataLoaded(data);
+
+      } catch (err) {
+        // 3. 如果連線失敗，啟動自動重試機制 (最多重試 3 次)
+        if (retries > 0) {
+          console.warn(`連線不穩定，系統正在自動重試... (剩餘 ${retries - 1} 次)`);
+          setTimeout(() => loadSystemData(retries - 1), 1500); // 延遲 1.5 秒後重試
+        } else {
+          // 4. 重試 3 次都失敗，嘗試拿出手機裡的上一次備援快取資料
+          const cachedData = localStorage.getItem('fengdong_gas_cache');
+          if (cachedData) {
+            console.log('啟動備援機制：載入本地快取資料');
+            onDataLoaded(JSON.parse(cachedData));
+          } else {
+            // 真的連不上，且從來沒有快取紀錄，才顯示紅色錯誤畫面
+            onDataError(err);
+          }
+        }
+      }
     }
 
     function onDataLoaded(response) {
